@@ -127,30 +127,32 @@ async function handleUpload(request, env){
 function json(obj, status=200){ return new Response(JSON.stringify(obj), { status, headers: { 'content-type':'application/json' } }); }
 
 export default { async fetch(request, env) {
-	const url = new URL(request.url);
-	if (url.pathname === '/health') return json({ status:'ok' });
-	if (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/upload.html') {
-		if (!env.ASSETS) return new Response('Assets binding missing', { status: 500 });
-		const path = url.pathname === '/' ? '/index.html' : url.pathname;
-		const asset = await env.ASSETS.fetch(new Request(new URL(path, 'http://assets')));
-		return new Response(asset.body, asset);
-	}
-	if (url.pathname === '/api/preorder-products') {
-		try { const variants = await listPreorderVariants(env, Math.min(Number(url.searchParams.get('limit')||'1000'), 2000)); return json({ count: variants.length, variants }); } catch(e) { return json({ error:'Failed to load preorder variants', details: String(e && e.message ? e.message : e) }, 500); }
-	}
-	if (url.pathname === '/upload' && request.method === 'POST') { try { return await handleUpload(request, env); } catch(e) { return json({ error:'Failed to process upload', details: String(e && e.message ? e.message : e) }, 500); } }
-	if (url.pathname === '/webhooks/shopify/inventory' && request.method === 'POST') {
-		const secret = env.SHOPIFY_WEBHOOK_SECRET; if (!secret) return new Response('Missing secret', { status: 500 });
-		const hmac = request.headers.get('x-shopify-hmac-sha256'); if (!hmac) return new Response('Unauthorized', { status: 401 });
-		const body = await request.arrayBuffer();
-		const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
-		const sig = await crypto.subtle.sign('HMAC', key, body); const digest = btoa(String.fromCharCode(...new Uint8Array(sig)));
-		if (digest !== hmac) return new Response('Unauthorized', { status: 401 });
-		const mongo = buildMongoClient(env); const payload = JSON.parse(new TextDecoder().decode(body));
-		await mongo.insertOne('inventory_events', { receivedAt: new Date().toISOString(), topic: request.headers.get('x-shopify-topic'), shopDomain: request.headers.get('x-shopify-shop-domain'), payload });
-		return new Response('', { status: 200 });
-	}
-	return new Response('Not found', { status: 404 });
+    const url = new URL(request.url);
+    if (url.pathname === '/health') return json({ status:'ok' });
+
+    if (url.pathname === '/api/preorder-products') {
+        try { const variants = await listPreorderVariants(env, Math.min(Number(url.searchParams.get('limit')||'1000'), 2000)); return json({ count: variants.length, variants }); } catch(e) { return json({ error:'Failed to load preorder variants', details: String(e && e.message ? e.message : e) }, 500); }
+    }
+    if (url.pathname === '/upload' && request.method === 'POST') { try { return await handleUpload(request, env); } catch(e) { return json({ error:'Failed to process upload', details: String(e && e.message ? e.message : e) }, 500); } }
+    if (url.pathname === '/webhooks/shopify/inventory' && request.method === 'POST') {
+        const secret = env.SHOPIFY_WEBHOOK_SECRET; if (!secret) return new Response('Missing secret', { status: 500 });
+        const hmac = request.headers.get('x-shopify-hmac-sha256'); if (!hmac) return new Response('Unauthorized', { status: 401 });
+        const body = await request.arrayBuffer();
+        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+        const sig = await crypto.subtle.sign('HMAC', key, body); const digest = btoa(String.fromCharCode(...new Uint8Array(sig)));
+        if (digest !== hmac) return new Response('Unauthorized', { status: 401 });
+        const mongo = buildMongoClient(env); const payload = JSON.parse(new TextDecoder().decode(body));
+        await mongo.insertOne('inventory_events', { receivedAt: new Date().toISOString(), topic: request.headers.get('x-shopify-topic'), shopDomain: request.headers.get('x-shopify-shop-domain'), payload });
+        return new Response('', { status: 200 });
+    }
+
+    // Fallback to static assets for all other GET requests
+    if (request.method === 'GET') {
+        if (!env.ASSETS) return new Response('Assets binding missing', { status: 500 });
+        return env.ASSETS.fetch(request);
+    }
+
+    return new Response('Not found', { status: 404 });
 }}
 
 
