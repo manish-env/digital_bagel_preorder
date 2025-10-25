@@ -2,6 +2,7 @@ name = "shopify-preorder-worker"
 main = "worker/worker.js"
 compatibility_date = "2024-10-01"
 workers_dev = true
+account_id = "15ca7e334e718fd09111923bd889fc4c"
 
 [assets]
 directory = "public"
@@ -17,7 +18,6 @@ MONGODB_DATA_API_KEY = ""
 MONGODB_DATA_API_DATA_SOURCE = ""
 MONGODB_DB = "shopify_preorder"
 
-[build]
-pages_build_output_dir = "public"
+ 
 
 
