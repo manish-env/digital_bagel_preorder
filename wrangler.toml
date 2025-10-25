@@ -19,4 +19,7 @@ MONGODB_DB = "shopify_preorder"
 [routes]
 # Add your route or use pages
 
+[build]
+pages_build_output_dir = "public"
+
 
