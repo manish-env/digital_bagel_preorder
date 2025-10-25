@@ -1,6 +1,7 @@
 name = "shopify-preorder-worker"
 main = "worker/worker.js"
 compatibility_date = "2024-10-01"
+workers_dev = true
 
 [assets]
 directory = "public"
@@ -15,9 +16,6 @@ MONGODB_DATA_API_URL = ""
 MONGODB_DATA_API_KEY = ""
 MONGODB_DATA_API_DATA_SOURCE = ""
 MONGODB_DB = "shopify_preorder"
-
-[routes]
-# Add your route or use pages
 
 [build]
 pages_build_output_dir = "public"
