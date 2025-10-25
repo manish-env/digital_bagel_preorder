@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload CSV • Shopify Preorder</title>
+    <style>
+        :root { --bg: #0b1220; --card: #0f172a; --muted: #93a4bf; --text: #e6edf7; --primary: #7c5cff; --stroke: #1f2a44; }
+        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; margin: 0; color: var(--text); background: radial-gradient(1200px 600px at 20% -10%, #1b2141 0%, var(--bg) 50%); }
+        .container { max-width: 840px; margin: 0 auto; padding: 22px 20px 40px; }
+        a { color: var(--text); }
+        .card { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; box-shadow: 0 12px 40px rgba(3,7,18,.35); padding: 20px; }
+        .btn { padding: 10px 14px; background: var(--primary); color: #fff; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-block; font-weight: 600; }
+        .muted { color: var(--muted); font-size: 12px; }
+        form { margin-top: 16px; display: grid; gap: 12px; }
+        input[type="file"] { padding: 10px; border: 1px solid var(--stroke); border-radius: 10px; background: #0b1531; color: var(--text); }
+        button[disabled] { opacity: 0.6; cursor: not-allowed; }
+        pre { background: #0b1531; border: 1px solid var(--stroke); padding: 12px; border-radius: 10px; overflow: auto; }
+    </style>
+    <script>
+        async function submitForm(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files[0]) { alert('Select a CSV file'); return; }
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.textContent = 'Uploading...';
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const json = await res.json();
+                document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error: ' + String(err);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Upload & Update';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <a href="/">← Back</a>
+        <h1>Upload CSV</h1>
+        <p>Required columns: <code>handle</code>, <code>sku</code>. Optional: <code>preorder_limit</code>, <code>preorder_message</code>. Missing <code>is_preorder</code> defaults to <code>true</code>.</p>
+        <form onsubmit="submitForm(event)">
+            <label for="csvFile">CSV file</label>
+            <input id="csvFile" name="file" type="file" accept=".csv,text/csv" />
+            <button id="submitBtn" class="btn" type="submit">Upload & Update</button>
+        </form>
+        <div class="result">
+            <h3>Response</h3>
+            <pre id="result">No upload yet.</pre>
+        </div>
+    </div>
+</body>
+</html>
+
+

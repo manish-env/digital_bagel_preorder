@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopify Preorder Dashboard</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --card: #0f172a;
+            --muted: #93a4bf;
+            --text: #e6edf7;
+            --primary: #7c5cff;
+            --primary-2: #5a38ff;
+            --stroke: #1f2a44;
+            --success: #2dd4bf;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; color: var(--text); background: radial-gradient(1200px 600px at 20% -10%, #1b2141 0%, var(--bg) 50%); }
+        .header { background: linear-gradient(180deg, rgba(124,92,255,.16), rgba(124,92,255,.06)); border-bottom: 1px solid var(--stroke); }
+        .header-inner { max-width: 1180px; margin: 0 auto; padding: 22px 20px; display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+        .brand { display: flex; gap: 12px; align-items: center; }
+        .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); box-shadow: 0 6px 24px rgba(124,92,255,.35); }
+        .brand h1 { font-size: 18px; margin: 0; letter-spacing: .2px; }
+        .actions { display: flex; gap: 10px; }
+        .btn { padding: 10px 14px; background: var(--primary); color: #fff; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; font-weight: 600; box-shadow: 0 8px 20px rgba(124,92,255,.25); }
+        .btn.secondary { background: #131c35; color: var(--text); border: 1px solid var(--stroke); box-shadow: none; }
+        .container { max-width: 1180px; margin: 0 auto; padding: 22px 20px 40px; }
+        .panel { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; box-shadow: 0 12px 40px rgba(3,7,18,.35); }
+        .panel-head { padding: 16px 16px; border-bottom: 1px solid var(--stroke); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+        .title { margin: 0; font-size: 16px; color: #e9edff; }
+        .sub { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+        .search { display: flex; gap: 10px; align-items: center; }
+        .input { padding: 10px 12px; width: 320px; border: 1px solid var(--stroke); border-radius: 10px; background: #0b1531; color: var(--text); outline: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.02); }
+        .count { color: var(--muted); font-size: 12px; }
+        .table-wrap { overflow: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--stroke); text-align: left; font-size: 14px; }
+        thead th { position: sticky; top: 0; background: #0f172a; z-index: 1; }
+        tbody tr:hover { background: rgba(124,92,255,.08); }
+        .badge { padding: 3px 8px; border-radius: 999px; background: rgba(45,212,191,.12); color: var(--success); border: 1px solid rgba(45,212,191,.25); font-size: 12px; }
+        code { background: #0b1531; color: #c9d7ff; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--stroke); }
+        .muted { color: var(--muted); font-size: 12px; }
+    </style>
+    <script>
+        async function submitForm(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files[0]) { alert('Select a CSV file'); return; }
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.textContent = 'Uploading...';
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const json = await res.json();
+                document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error: ' + String(err);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Upload & Update';
+            }
+        }
+
+        let variantCache = [];
+        async function loadPreorderProducts() {
+            const el = document.getElementById('products');
+            el.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/preorder-products');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data && data.details ? data.details : res.statusText);
+                variantCache = data.variants || [];
+                renderTable(variantCache);
+            } catch (e) {
+                el.innerHTML = `<pre>Error loading products: ${String(e.message || e)}</pre>`;
+            }
+        }
+
+        function renderTable(items) {
+            const el = document.getElementById('products');
+            if (!items.length) { el.innerHTML = '<div class="panel"><div class="panel-head"><div><h3 class="title">Preorder variants</h3><p class="sub">No results yet.</p></div></div></div>'; return; }
+            const rows = items.map(v => `
+                <tr>
+                    <td>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="badge">Preorder</span>
+                            <div>
+                                <div style="font-weight:600">${v.productTitle}</div>
+                                <div class="muted"><code>${v.productHandle}</code></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${v.variantTitle || ''}</td>
+                    <td><code>${v.sku || ''}</code></td>
+                    <td>${(v.stockAvailable ?? '')}</td>
+                    <td>${v.preorderLimit || ''}</td>
+                    <td>${(v.preorderMessage || '').replace(/</g,'&lt;')}</td>
+                </tr>
+            `).join('');
+            el.innerHTML = `
+                <div class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <h3 class="title">Preorder variants</h3>
+                            <p class="sub">Variants with metafield <code>is_preorder = true</code></p>
+                        </div>
+                        <div class="search">
+                            <input id="q" class="input" placeholder="Search product, variant, handle or SKU" oninput="doSearch(event)" />
+                            <span class="count">${items.length}</span>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Variant</th>
+                                    <th>SKU</th>
+                                    <th>Stock</th>
+                                    <th>Limit</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        function doSearch(e) {
+            const q = e.target.value.toLowerCase().trim();
+            if (!q) { renderTable(variantCache); return; }
+            const filtered = variantCache.filter(v =>
+                (v.productTitle || '').toLowerCase().includes(q) ||
+                (v.productHandle || '').toLowerCase().includes(q) ||
+                (v.variantTitle || '').toLowerCase().includes(q) ||
+                (v.sku || '').toLowerCase().includes(q)
+            );
+            renderTable(filtered);
+        }
+
+        window.addEventListener('DOMContentLoaded', loadPreorderProducts);
+    </script>
+    
+    
+</head>
+<body>
+        <div class="header">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="logo"></div>
+                    <div>
+                        <h1>Shopify Preorder Dashboard</h1>
+                        <div class="muted">Manage and review variants on preorder</div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a class="btn" href="/upload.html">Upload CSV</a>
+                    <button class="btn secondary" onclick="loadPreorderProducts()">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="products"></div>
+        </div>
+
+        <form onsubmit="submitForm(event)">
+            <label for="csvFile">CSV file</label>
+            <input id="csvFile" name="file" type="file" accept=".csv,text/csv" />
+            <button id="submitBtn" type="submit">Upload & Update</button>
+        </form>
+
+        <div class="result">
+            <h3>Response</h3>
+            <pre id="result">No upload yet.</pre>
+        </div>
+
+        <h3>CSV Example</h3>
+        <pre>handle,sku,preorder_limit,preorder_message
+my-product-handle,SKU-001,25,Preorder ships in 2 weeks
+my-product-handle,SKU-002,,
+another-handle,SKU-ABC,10,Limited preorder
+</pre>
+    </div>
+</body>
+</html>
+
+

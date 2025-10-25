@@ -1,0 +1,22 @@
+name = "shopify-preorder-worker"
+main = "worker/worker.js"
+compatibility_date = "2024-10-01"
+
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+[vars]
+SHOPIFY_WEBHOOK_SECRET = ""
+SHOPIFY_ADMIN_ACCESS_TOKEN = ""
+SHOPIFY_STORE_DOMAIN = ""
+SHOPIFY_API_VERSION = "2024-10"
+MONGODB_DATA_API_URL = ""
+MONGODB_DATA_API_KEY = ""
+MONGODB_DATA_API_DATA_SOURCE = ""
+MONGODB_DB = "shopify_preorder"
+
+[routes]
+# Add your route or use pages
+
+
