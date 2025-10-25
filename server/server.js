@@ -7,7 +7,7 @@ const pLimit = typeof pLimitLib === 'function' ? pLimitLib : pLimitLib.default;
 
 dotenv.config();
 
-const { parseCsvFromBuffer } = require('./csv');
+const { parseCsvFromBuffer } = require('./utils/csv');
 const { getProductByHandle, setVariantMetafields, listPreorderVariants } = require('./shopify');
 const { withCollections } = require('./db');
 
@@ -106,11 +106,11 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
 	let parsed;
 	try {
-    parsed = parseCsvFromBuffer(req.file.buffer);
+		parsed = parseCsvFromBuffer(req.file.buffer);
 	} catch (err) {
 		return res.status(400).json({ error: 'Failed to parse CSV', details: String(err && err.message ? err.message : err) });
 	}
-  const rows = Array.isArray(parsed) ? parsed : parsed.rows;
+	const rows = Array.isArray(parsed) ? parsed : parsed.rows;
 
 	const namespace = process.env.METAFIELD_NAMESPACE || 'preorder';
 	const concurrency = Number(process.env.CONCURRENCY || 5);
@@ -118,8 +118,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 	const productCache = new Map(); // handle -> product or null if not found
 
 	const results = {
-    totalRows: rows.length,
-    skippedRows: parsed && parsed.stats ? parsed.stats.skippedRows : 0,
+		totalRows: rows.length,
+		skippedRows: parsed && parsed.stats ? parsed.stats.skippedRows : 0,
 		successCount: 0,
 		notFoundProduct: [], // { handle }
 		notFoundVariant: [], // { handle, sku }
@@ -235,5 +235,6 @@ app.listen(port, () => {
 	// eslint-disable-next-line no-console
 	console.log(`Server listening on http://localhost:${port}`);
 });
+
 
 
