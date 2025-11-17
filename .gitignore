@@ -1,4 +1,14 @@
 node_modules/
+.wrangler/
+*.log
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/dist/
+/.cache/
+
+node_modules/
 .env
 npm-debug.log*
 yarn-error.log*

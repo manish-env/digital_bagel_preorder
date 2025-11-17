@@ -11,43 +11,213 @@
         a { color: var(--text); }
         .card { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; box-shadow: 0 12px 40px rgba(3,7,18,.35); padding: 20px; }
         .btn { padding: 10px 14px; background: var(--primary); color: #fff; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-block; font-weight: 600; }
+        .btn.secondary { background: #131c35; color: var(--text); border: 1px solid var(--stroke); box-shadow: none; }
         .muted { color: var(--muted); font-size: 12px; }
         form { margin-top: 16px; display: grid; gap: 12px; }
         input[type="file"] { padding: 10px; border: 1px solid var(--stroke); border-radius: 10px; background: #0b1531; color: var(--text); }
         button[disabled] { opacity: 0.6; cursor: not-allowed; }
         pre { background: #0b1531; border: 1px solid var(--stroke); padding: 12px; border-radius: 10px; overflow: auto; }
+
+        /* Progress bar styles */
+        .progress-container { margin: 16px 0; display: none; }
+        .progress-container.show { display: block; }
+        .progress-bar { width: 100%; height: 20px; background: #1f2a44; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #5b47cc); transition: width 0.3s ease; border-radius: 10px; }
+        .progress-text { text-align: center; font-size: 14px; color: var(--muted); }
+        .progress-details { margin-top: 12px; padding: 12px; background: #0f172a; border: 1px solid var(--stroke); border-radius: 8px; }
+        .progress-details .detail-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+        .progress-details .detail-row:last-child { margin-bottom: 0; }
     </style>
     <script>
+        let currentUploadId = null;
+        let progressInterval = null;
+
         async function submitForm(e) {
             e.preventDefault();
             const fileInput = document.getElementById('csvFile');
             if (!fileInput.files[0]) { alert('Select a CSV file'); return; }
+
+            // Clear previous upload
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+
             const btn = document.getElementById('submitBtn');
-            btn.disabled = true; btn.textContent = 'Uploading...';
+            btn.disabled = true; btn.textContent = 'Starting Upload...';
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
+
             try {
-                const res = await fetch('/upload', { method: 'POST', body: formData });
-                const json = await res.json();
-                document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (!res.ok || !data.uploadId) {
+                    throw new Error(data.error || `Upload failed: ${res.status}`);
+                }
+
+                currentUploadId = data.uploadId;
+                document.getElementById('result').textContent = `Upload started! Job ID: ${currentUploadId}\nStatus: ${data.status}\nTotal items: ${data.totalRows}\n\nMonitoring progress...`;
+
+                // Start monitoring progress
+                startProgressMonitoring(currentUploadId);
+
             } catch (err) {
                 document.getElementById('result').textContent = 'Error: ' + String(err);
-            } finally {
                 btn.disabled = false; btn.textContent = 'Upload & Update';
             }
+        }
+
+        function startProgressMonitoring(uploadId) {
+            const resultEl = document.getElementById('result');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const progressDetails = document.getElementById('progressDetails');
+            const btn = document.getElementById('submitBtn');
+
+            // Show progress bar
+            progressContainer.classList.add('show');
+
+            progressInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/upload/${uploadId}`);
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Failed to get progress');
+                    }
+
+                    const progress = data.progress || {};
+                    const status = data.status;
+                    const total = data.stats?.totalRows || 0;
+                    const processed = progress.processed || 0;
+                    const successful = progress.successful || 0;
+                    const failed = progress.failed || 0;
+
+                    // Update progress bar
+                    const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+                    progressFill.style.width = `${percentage}%`;
+                    progressText.textContent = `${percentage}% Complete - ${processed}/${total} processed`;
+
+                    // Update details
+                    progressDetails.innerHTML = `
+                        <div class="detail-row"><span>Status:</span><span>${status}</span></div>
+                        <div class="detail-row"><span>Processed:</span><span>${processed}/${total}</span></div>
+                        <div class="detail-row"><span>Successful:</span><span>${successful}</span></div>
+                        <div class="detail-row"><span>Failed:</span><span>${failed}</span></div>
+                    `;
+
+                    // Update result text
+                    let statusText = `Job ID: ${uploadId}\nStatus: ${status}\n`;
+                    statusText += `Progress: ${processed}/${total} processed\n`;
+                    statusText += `Successful: ${successful}\n`;
+                    statusText += `Failed: ${failed}\n`;
+
+                    if (data.results) {
+                        statusText += `\n✅ Completed! ${data.results.successCount || 0} successful, ${data.results.errorCount || 0} failed`;
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                        btn.disabled = false;
+                        btn.textContent = 'Upload & Update';
+
+                        // Hide progress bar
+                        progressContainer.classList.remove('show');
+
+                        if (data.recentErrors && data.recentErrors.length > 0) {
+                            statusText += '\n\n⚠️ Recent Errors:\n';
+                            data.recentErrors.slice(0, 5).forEach(error => {
+                                statusText += `• ${error.sku}: ${error.error}\n`;
+                            });
+                        }
+                    }
+
+                    resultEl.textContent = statusText;
+
+                } catch (error) {
+                    console.error('Progress monitoring error:', error);
+                    // Continue monitoring even if one request fails
+                }
+            }, 2000); // Check progress every 2 seconds
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        function downloadTemplate() {
+            // Helper to escape CSV values
+            function escapeCsvValue(value) {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            }
+            
+            // Create CSV template with correct headers
+            const headers = ['sku', 'is_preorder', 'preorder_limit', 'preorder_message'];
+            const rows = [
+                ['SKU-001', 'true', '100', 'Pre-order item - ships in 2-3 weeks'],
+                ['SKU-002', 'true', '50', ''],
+                ['SKU-003', '', '200', 'Backorder available']
+            ];
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(escapeCsvValue).join(','))
+            ].join('\n');
+            
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'preorder_template.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </head>
 <body>
     <div class="container">
-        <a href="/">← Back</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="/">← Back</a>
+            <button class="btn secondary" onclick="handleLogout()" style="padding: 8px 12px; font-size: 13px;">Logout</button>
+        </div>
         <h1>Upload CSV</h1>
-        <p>Required columns: <code>handle</code>, <code>sku</code>. Optional: <code>preorder_limit</code>, <code>preorder_message</code>. Missing <code>is_preorder</code> defaults to <code>true</code>.</p>
+        <p>Required columns: <code>sku</code>. Optional: <code>is_preorder</code>, <code>preorder_limit</code>, <code>preorder_message</code>. Missing <code>is_preorder</code> defaults to <code>true</code>.</p>
+        <div style="margin-bottom: 16px;">
+            <button class="btn secondary" onclick="downloadTemplate()" style="padding: 8px 12px; font-size: 13px;">📥 Download Template</button>
+        </div>
         <form onsubmit="submitForm(event)">
             <label for="csvFile">CSV file</label>
             <input id="csvFile" name="file" type="file" accept=".csv,text/csv" />
             <button id="submitBtn" class="btn" type="submit">Upload & Update</button>
         </form>
+
+        <!-- Progress Bar -->
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div id="progressText" class="progress-text">0% Complete - 0/0 processed</div>
+            <div id="progressDetails" class="progress-details">
+                <div class="detail-row"><span>Status:</span><span>queued</span></div>
+                <div class="detail-row"><span>Processed:</span><span>0/0</span></div>
+                <div class="detail-row"><span>Successful:</span><span>0</span></div>
+                <div class="detail-row"><span>Failed:</span><span>0</span></div>
+            </div>
+        </div>
+
         <div class="result">
             <h3>Response</h3>
             <pre id="result">No upload yet.</pre>

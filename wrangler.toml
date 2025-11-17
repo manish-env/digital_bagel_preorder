@@ -9,15 +9,28 @@ directory = "public"
 binding = "ASSETS"
 
 [vars]
-SHOPIFY_WEBHOOK_SECRET = ""
-SHOPIFY_ADMIN_ACCESS_TOKEN = ""
-SHOPIFY_STORE_DOMAIN = ""
+SHOPIFY_WEBHOOK_SECRET = "f91dda9d246ab3c5de518e4079344533ff04c65cc08a3f3bbfcd68adac619ab5"
+# SHOPIFY_ADMIN_ACCESS_TOKEN should be set via: npx wrangler secret put SHOPIFY_ADMIN_ACCESS_TOKEN
+# Or pass during deployment: npx wrangler deploy --var SHOPIFY_ADMIN_ACCESS_TOKEN="your_token"
+SHOPIFY_STORE_DOMAIN = "rujutasheth-com.myshopify.com"
 SHOPIFY_API_VERSION = "2024-10"
-MONGODB_DATA_API_URL = ""
-MONGODB_DATA_API_KEY = ""
-MONGODB_DATA_API_DATA_SOURCE = ""
-MONGODB_DB = "shopify_preorder"
+METAFIELD_NAMESPACE = "preorder"
+CONCURRENCY = "1"
+PUBLIC_BASE_URL = "https://shopify-preorder-worker.manishbsn188.workers.dev"
 
- 
+[[d1_databases]]
+binding = "rjs_preorder"
+database_name = "rjs_preorder"
+database_id = "afd8d955-231f-4ce3-9fed-bee0ffdecde9"
+
+# Cron trigger for background processing (every 2 minutes)
+[triggers]
+crons = ["*/2 * * * *"]
 
 
+
+[observability]
+[observability.logs]
+enabled = true
+head_sampling_rate = 1.0
+invocation_logs = true

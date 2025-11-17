@@ -3,123 +3,966 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shopify Preorder Dashboard</title>
+    <title>RJS Preorder Management</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
         :root {
-            --bg: #0b1220;
-            --card: #0f172a;
-            --muted: #93a4bf;
-            --text: #e6edf7;
-            --primary: #7c5cff;
-            --primary-2: #5a38ff;
-            --stroke: #1f2a44;
-            --success: #2dd4bf;
+            --bg-primary: #0a0e27;
+            --bg-secondary: #141b2d;
+            --bg-elevated: #1a2236;
+            --border: #2d3548;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.1);
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
         }
-        * { box-sizing: border-box; }
-        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; color: var(--text); background: radial-gradient(1200px 600px at 20% -10%, #1b2141 0%, var(--bg) 50%); }
-        .header { background: linear-gradient(180deg, rgba(124,92,255,.16), rgba(124,92,255,.06)); border-bottom: 1px solid var(--stroke); }
-        .header-inner { max-width: 1180px; margin: 0 auto; padding: 22px 20px; display: flex; gap: 16px; align-items: center; justify-content: space-between; }
-        .brand { display: flex; gap: 12px; align-items: center; }
-        .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); box-shadow: 0 6px 24px rgba(124,92,255,.35); }
-        .brand h1 { font-size: 18px; margin: 0; letter-spacing: .2px; }
-        .actions { display: flex; gap: 10px; }
-        .btn { padding: 10px 14px; background: var(--primary); color: #fff; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; font-weight: 600; box-shadow: 0 8px 20px rgba(124,92,255,.25); }
-        .btn.secondary { background: #131c35; color: var(--text); border: 1px solid var(--stroke); box-shadow: none; }
-        .container { max-width: 1180px; margin: 0 auto; padding: 22px 20px 40px; }
-        .panel { background: var(--card); border: 1px solid var(--stroke); border-radius: 14px; box-shadow: 0 12px 40px rgba(3,7,18,.35); }
-        .panel-head { padding: 16px 16px; border-bottom: 1px solid var(--stroke); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-        .title { margin: 0; font-size: 16px; color: #e9edff; }
-        .sub { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-        .search { display: flex; gap: 10px; align-items: center; }
-        .input { padding: 10px 12px; width: 320px; border: 1px solid var(--stroke); border-radius: 10px; background: #0b1531; color: var(--text); outline: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.02); }
-        .count { color: var(--muted); font-size: 12px; }
-        .table-wrap { overflow: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid var(--stroke); text-align: left; font-size: 14px; }
-        thead th { position: sticky; top: 0; background: #0f172a; z-index: 1; }
-        tbody tr:hover { background: rgba(124,92,255,.08); }
-        .badge { padding: 3px 8px; border-radius: 999px; background: rgba(45,212,191,.12); color: var(--success); border: 1px solid rgba(45,212,191,.25); font-size: 12px; }
-        code { background: #0b1531; color: #c9d7ff; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--stroke); }
-        .muted { color: var(--muted); font-size: 12px; }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header { 
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-inner { 
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        
+        .brand { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem;
+        }
+        
+        .logo { 
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .brand h1 { 
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        
+        .header-actions { 
+            display: flex; 
+            gap: 0.75rem; 
+            align-items: center;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-icon {
+            padding: 0.625rem;
+            border-radius: 8px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        /* Panel */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .input:focus {
+            border-color: var(--accent);
+            background: var(--bg-primary);
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead th {
+            background: var(--bg-elevated);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s ease;
+        }
+        
+        tbody tr:hover {
+            background: var(--bg-elevated);
+        }
+        
+        tbody td {
+            padding: 1rem 1.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .sku-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .stock-in { background: var(--success-light); color: var(--success); }
+        .stock-out { background: var(--danger-light); color: var(--danger); }
+        .stock-low { background: var(--warning-light); color: var(--warning); }
+        
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .modal-backdrop.open { display: flex; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            margin: -0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .message.show { display: block; }
+        .message.success { background: var(--success-light); color: var(--success); }
+        .message.error { background: var(--danger-light); color: var(--danger); }
+        
+        /* Status Message */
+        .status-message {
+            padding: 1rem 1.5rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Loading */
+        .loading {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Dropdown Menu */
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+            padding: 0.5rem;
+            display: none;
+            z-index: 100;
+        }
+        
+        .dropdown-menu.open { display: block; }
+        
+        .dropdown-item {
+            display: block;
+            padding: 0.625rem 0.875rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        
+        .dropdown-item.danger:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .panel-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: none;
+            }
+            
+            .table-container {
+                overflow-x: scroll;
+            }
+            
+            table {
+                min-width: 800px;
+            }
+        }
     </style>
     <script>
+        let currentUploadId = null;
+        let progressInterval = null;
+
         async function submitForm(e) {
             e.preventDefault();
             const fileInput = document.getElementById('csvFile');
             if (!fileInput.files[0]) { alert('Select a CSV file'); return; }
+
+            // Clear previous upload
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+
             const btn = document.getElementById('submitBtn');
-            btn.disabled = true; btn.textContent = 'Uploading...';
+            btn.disabled = true; btn.textContent = 'Starting Upload...';
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
+
             try {
-                const res = await fetch('/upload', { method: 'POST', body: formData });
-                const json = await res.json();
-                document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (!res.ok || !data.uploadId) {
+                    throw new Error(data.error || `Upload failed: ${res.status}`);
+                }
+
+                currentUploadId = data.uploadId;
+                document.getElementById('result').textContent = `Upload started! Job ID: ${currentUploadId}\nStatus: ${data.status}\nTotal items: ${data.totalRows}\n\nMonitoring progress...`;
+
+                // Start monitoring progress
+                startProgressMonitoring(currentUploadId);
+
             } catch (err) {
                 document.getElementById('result').textContent = 'Error: ' + String(err);
-            } finally {
                 btn.disabled = false; btn.textContent = 'Upload & Update';
             }
         }
 
+        function startProgressMonitoring(uploadId) {
+            const resultEl = document.getElementById('result');
+            const btn = document.getElementById('submitBtn');
+
+            progressInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/upload/${uploadId}`);
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Failed to get progress');
+                    }
+
+                    const progress = data.progress || {};
+                    const status = data.status;
+
+                    let statusText = `Status: ${status}\n`;
+                    statusText += `Progress: ${progress.processed || 0}/${data.stats?.totalRows || 0} processed\n`;
+                    statusText += `Successful: ${progress.successful || 0}\n`;
+                    statusText += `Failed: ${progress.failed || 0}\n`;
+
+                    if (data.results) {
+                        statusText += `\n✅ Completed! ${data.results.successCount || 0} successful, ${data.results.errorCount || 0} failed`;
+                        clearInterval(progressInterval);
+                        progressInterval = null;
+                        btn.disabled = false;
+                        btn.textContent = 'Upload & Update';
+
+                        if (data.recentErrors && data.recentErrors.length > 0) {
+                            statusText += '\n\n⚠️ Recent Errors:\n';
+                            data.recentErrors.slice(0, 5).forEach(error => {
+                                statusText += `• ${error.sku}: ${error.error}\n`;
+                            });
+                        }
+                    }
+
+                    resultEl.textContent = `Job ID: ${uploadId}\n${statusText}`;
+
+                } catch (error) {
+                    console.error('Progress monitoring error:', error);
+                    // Continue monitoring even if one request fails
+                }
+            }, 2000); // Check progress every 2 seconds
+        }
+
         let variantCache = [];
+        let editingVariantId = null;
+        let brandMenuToggle = null;
+        let brandMenu = null;
+
+        function toggleBrandMenu(force) {
+            if (!brandMenuToggle || !brandMenu) return;
+            const shouldOpen = typeof force === 'boolean' ? force : !brandMenu.classList.contains('open');
+            if (shouldOpen) {
+                brandMenu.classList.add('open');
+                brandMenuToggle.setAttribute('aria-expanded', 'true');
+            } else {
+                brandMenu.classList.remove('open');
+                brandMenuToggle.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function handleBrandMenuToggle(event) {
+            event.stopPropagation();
+            toggleBrandMenu();
+        }
+
+        function handleDocumentClick(event) {
+            if (!brandMenuToggle || !brandMenu) return;
+            if (!brandMenu.contains(event.target) && !brandMenuToggle.contains(event.target)) {
+                toggleBrandMenu(false);
+            }
+        }
+
+        function showModalMessage(text, tone) {
+            const messageEl = document.getElementById('variantModalMessage');
+            if (!messageEl) return;
+            messageEl.textContent = text || '';
+            messageEl.className = 'message';
+            if (text) {
+                messageEl.classList.add('show');
+                if (tone === 'error') messageEl.classList.add('error');
+                else if (tone === 'success') messageEl.classList.add('success');
+            }
+        }
+        
+        function showStatusMessage(text, type = '') {
+            const statusEl = document.getElementById('clearStatus');
+            if (!statusEl) return;
+            if (!text) {
+                statusEl.style.display = 'none';
+                return;
+            }
+            statusEl.textContent = text;
+            statusEl.style.display = 'block';
+            statusEl.style.color = type === 'error' ? 'var(--danger)' : type === 'success' ? 'var(--success)' : 'var(--text-secondary)';
+        }
+
+        function openVariantModal(encodedId) {
+            const variantId = decodeURIComponent(encodedId || '');
+            const modal = document.getElementById('variantModal');
+            const index = variantCache.findIndex(v => v.variantId === variantId);
+            if (!modal || index === -1) return;
+
+            const variant = variantCache[index];
+            editingVariantId = variantId;
+
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+
+            const titleEl = document.getElementById('variantModalTitle');
+            const subtitleEl = document.getElementById('variantModalSubtitle');
+            const skuEl = document.getElementById('variantModalSku');
+            const preorderEl = document.getElementById('variantIsPreorder');
+            const limitEl = document.getElementById('variantLimit');
+            const messageEl = document.getElementById('variantMessage');
+            const submitBtn = document.getElementById('variantModalSubmit');
+
+            if (titleEl) titleEl.textContent = variant.productTitle || 'Variant';
+            if (subtitleEl) subtitleEl.textContent = variant.variantTitle || variant.productHandle || '';
+            if (skuEl) skuEl.textContent = variant.sku ? `SKU ${variant.sku}` : '';
+            if (preorderEl) preorderEl.checked = variant.isPreorder !== false;
+            if (limitEl) limitEl.value = variant.preorderLimit || '';
+            if (messageEl) messageEl.value = variant.preorderMessage || '';
+            if (submitBtn) submitBtn.disabled = false;
+
+            showModalMessage('', '');
+
+            setTimeout(() => {
+                if (limitEl) limitEl.focus();
+            }, 40);
+        }
+
+        async function handleVariantDelete() {
+            if (!editingVariantId) return;
+            if (!confirm('Are you sure you want to delete all preorder data for this variant? This action cannot be undone.')) {
+                return;
+            }
+
+            const deleteBtn = document.getElementById('variantModalDelete');
+            if (deleteBtn) deleteBtn.disabled = true;
+            showModalMessage('Deleting preorder data…', '');
+
+            try {
+                await deleteVariantPreorder(encodeURIComponent(editingVariantId), document.getElementById('clearStatus'));
+                closeVariantModal();
+            } catch (error) {
+                showModalMessage('Failed to delete preorder data: ' + error.message, 'error');
+            } finally {
+                if (deleteBtn) deleteBtn.disabled = false;
+            }
+        }
+
+        function closeVariantModal() {
+            const modal = document.getElementById('variantModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            editingVariantId = null;
+            showModalMessage('', '');
+        }
+
+        async function submitVariantEdit(event) {
+            event.preventDefault();
+            if (!editingVariantId) return;
+            const index = variantCache.findIndex(v => v.variantId === editingVariantId);
+            if (index === -1) {
+                showModalMessage('Variant not found in the current list.', 'error');
+                return;
+            }
+
+            const variant = variantCache[index];
+            const preorderEl = document.getElementById('variantIsPreorder');
+            const limitEl = document.getElementById('variantLimit');
+            const messageEl = document.getElementById('variantMessage');
+            const submitBtn = document.getElementById('variantModalSubmit');
+
+            const isPreorder = preorderEl ? preorderEl.checked : true;
+            const limitRaw = limitEl ? limitEl.value.trim() : '';
+            let includeLimit = true;
+            let limitValue = 0;
+            if (limitRaw === '') {
+                includeLimit = false;
+            } else {
+                const parsed = Number(limitRaw);
+                if (!Number.isFinite(parsed) || parsed < 0) {
+                    showModalMessage('Preorder limit must be a non-negative number.', 'error');
+                    return;
+                }
+                limitValue = Math.floor(parsed);
+            }
+            const messageValue = messageEl ? messageEl.value : '';
+
+            if (submitBtn) submitBtn.disabled = true;
+            showModalMessage('Saving changes…', '');
+
+            const payload = {
+                variantId: editingVariantId,
+                isPreorder,
+                preorderMessage: messageValue,
+                sku: variant.sku || null,
+                productId: variant.productId || null,
+                productTitle: variant.productTitle || null,
+                productHandle: variant.productHandle || null,
+                inventoryItemId: variant.inventoryItemId || null,
+            };
+            if (includeLimit) {
+                payload.preorderLimit = limitValue;
+            }
+
+            try {
+                const res = await fetch('/api/variant-metafields', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) {
+                    const errText = data?.error || res.statusText || 'Request failed';
+                    showModalMessage(`Failed to update variant: ${errText}`, 'error');
+                    if (submitBtn) submitBtn.disabled = false;
+                    return;
+                }
+
+                if (!isPreorder) {
+                    variantCache = variantCache.filter(v => v.variantId !== editingVariantId);
+                } else {
+                    const updatedVariant = { ...variant, isPreorder };
+                    if (data.variant?.preorderLimit !== undefined) {
+                        updatedVariant.preorderLimit = data.variant.preorderLimit;
+                    }
+                    if (data.variant?.preorderMessage !== undefined) {
+                        updatedVariant.preorderMessage = data.variant.preorderMessage;
+                    } else {
+                        updatedVariant.preorderMessage = messageValue;
+                    }
+                    variantCache[index] = updatedVariant;
+                }
+
+                showModalMessage('Saved!', 'success');
+                applyCurrentSearch();
+
+                setTimeout(() => {
+                    closeVariantModal();
+                }, 600);
+            } catch (error) {
+                showModalMessage(`Network error: ${error.message}`, 'error');
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
         async function loadPreorderProducts() {
             const el = document.getElementById('products');
-            el.innerHTML = 'Loading...';
+            if (el) el.innerHTML = '<div class="panel"><div class="loading"><div class="spinner"></div><p style="margin-top: 1rem;">Loading preorder items...</p></div></div>';
+            showStatusMessage('');
+            
             try {
                 const res = await fetch('/api/preorder-products');
-                const data = await res.json();
-                if (!res.ok) throw new Error(data && data.details ? data.details : res.statusText);
+                const contentType = res.headers.get('content-type') || '';
+                let data = null;
+                if (contentType.includes('application/json')) {
+                    data = await res.json();
+                } else {
+                    const text = await res.text();
+                    throw new Error(`Unexpected response format. Status: ${res.status}. Response: ${text.substring(0, 200)}`);
+                }
+                if (!res.ok) {
+                    throw new Error(data && (data.details || data.error) ? (data.details || data.error) : res.statusText);
+                }
                 variantCache = data.variants || [];
                 renderTable(variantCache);
+                if (variantCache.length > 0) {
+                    showStatusMessage(`Loaded ${variantCache.length} preorder item${variantCache.length === 1 ? '' : 's'}`, 'success');
+                }
             } catch (e) {
-                el.innerHTML = `<pre>Error loading products: ${String(e.message || e)}</pre>`;
+                if (el) el.innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Error Loading Products</div><p style="color: var(--danger);">${String(e.message || e)}</p><button class="btn btn-primary" style="margin-top: 1rem;" onclick="loadPreorderProducts()">Retry</button></div></div>`;
+                showStatusMessage('Failed to load products: ' + String(e.message || e), 'error');
             }
         }
 
         function renderTable(items) {
             const el = document.getElementById('products');
-            if (!items.length) { el.innerHTML = '<div class="panel"><div class="panel-head"><div><h3 class="title">Preorder variants</h3><p class="sub">No results yet.</p></div></div></div>'; return; }
-            const rows = items.map(v => `
-                <tr>
-                    <td>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="badge">Preorder</span>
-                            <div>
-                                <div style="font-weight:600">${v.productTitle}</div>
-                                <div class="muted"><code>${v.productHandle}</code></div>
-                            </div>
+            if (!el) return;
+            
+            if (!items.length) {
+                el.innerHTML = `
+                    <div class="panel">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div class="empty-state-title">No Preorder Items</div>
+                            <p>Upload a CSV file or configure variants to get started.</p>
                         </div>
+                    </div>`;
+                return;
+            }
+
+            const rows = items.map(v => {
+                const encodedId = encodeURIComponent(v.variantId || '');
+                const limitDisplay = (v.preorderLimit ?? '').toString();
+                const messageDisplay = (v.preorderMessage || '').replace(/</g, '&lt;').substring(0, 50) + (v.preorderMessage && v.preorderMessage.length > 50 ? '...' : '');
+                const stock = v.stockAvailable ?? 0;
+                
+                let stockBadge = '';
+                if (stock > 10) {
+                    stockBadge = `<span class="stock-badge stock-in">✓ In Stock (${stock})</span>`;
+                } else if (stock > 0) {
+                    stockBadge = `<span class="stock-badge stock-low">⚠ Low (${stock})</span>`;
+                } else {
+                    stockBadge = `<span class="stock-badge stock-out">✕ Out of Stock</span>`;
+                }
+                
+                return `
+                <tr data-variant-id="${encodedId}">
+                    <td>
+                        <div class="product-name">${v.productTitle || 'Unnamed Product'}</div>
+                        ${v.variantTitle ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">${v.variantTitle}</div>` : ''}
                     </td>
-                    <td>${v.variantTitle || ''}</td>
-                    <td><code>${v.sku || ''}</code></td>
-                    <td>${(v.stockAvailable ?? '')}</td>
-                    <td>${v.preorderLimit || ''}</td>
-                    <td>${(v.preorderMessage || '').replace(/</g,'&lt;')}</td>
-                </tr>
-            `).join('');
+                    <td><span class="sku-badge">${v.sku || 'N/A'}</span></td>
+                    <td>${stockBadge}</td>
+                    <td style="font-weight: 600; color: ${limitDisplay > 0 ? 'var(--success)' : 'var(--danger)'};">${limitDisplay || '0'}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.8125rem;">${messageDisplay || '—'}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary" style="padding: 0.5rem 0.875rem; font-size: 0.8125rem;" type="button" onclick="openVariantModal('${encodedId}')">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                            </svg>
+                            Edit
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
             el.innerHTML = `
                 <div class="panel">
-                    <div class="panel-head">
-                        <div>
-                            <h3 class="title">Preorder variants</h3>
-                            <p class="sub">Variants with metafield <code>is_preorder = true</code></p>
-                        </div>
-                        <div class="search">
-                            <input id="q" class="input" placeholder="Search product, variant, handle or SKU" oninput="doSearch(event)" />
-                            <span class="count">${items.length}</span>
-                        </div>
+                    <div class="panel-header">
+                        <h3 class="panel-title">Preorder Items (${items.length})</h3>
+                        <div class="search-box">
+                            <input type="text" class="input" id="q" placeholder="Search by product, SKU..." onkeyup="doSearch()" />
+                            <button class="btn btn-secondary" onclick="doSearch()">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                                Search
+                            </button>
                     </div>
-                    <div class="table-wrap">
+                    </div>
+                    <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Product</th>
-                                    <th>Variant</th>
                                     <th>SKU</th>
-                                    <th>Stock</th>
-                                    <th>Limit</th>
+                                    <th>Stock Status</th>
+                                    <th>Preorder Limit</th>
                                     <th>Message</th>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>${rows}</tbody>
@@ -128,62 +971,250 @@
                 </div>`;
         }
 
-        function doSearch(e) {
-            const q = e.target.value.toLowerCase().trim();
-            if (!q) { renderTable(variantCache); return; }
+        function applyCurrentSearch() {
+            const input = document.getElementById('q');
+            const query = input ? input.value.toLowerCase().trim() : '';
+            if (!query) {
+                renderTable(variantCache);
+                return;
+            }
             const filtered = variantCache.filter(v =>
-                (v.productTitle || '').toLowerCase().includes(q) ||
-                (v.productHandle || '').toLowerCase().includes(q) ||
-                (v.variantTitle || '').toLowerCase().includes(q) ||
-                (v.sku || '').toLowerCase().includes(q)
+                (v.productTitle || '').toLowerCase().includes(query) ||
+                (v.productHandle || '').toLowerCase().includes(query) ||
+                (v.variantTitle || '').toLowerCase().includes(query) ||
+                (v.sku || '').toLowerCase().includes(query)
             );
             renderTable(filtered);
+            if (input) {
+                input.focus();
+                input.selectionStart = input.selectionEnd = input.value.length;
+            }
         }
 
-        window.addEventListener('DOMContentLoaded', loadPreorderProducts);
+        function doSearch() {
+            applyCurrentSearch();
+        }
+
+        async function clearAllPreorderData() {
+            if (!confirm('⚠️ This will remove all preorder metafields and stored data. This action cannot be undone. Continue?')) return;
+            showStatusMessage('Clearing all preorder data…', '');
+
+            try {
+                const res = await fetch('/admin/clear-preorder', { method: 'POST' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) {
+                    const errText = data?.error || res.statusText || 'Request failed';
+                    showStatusMessage(`Failed to clear preorder data: ${errText}`, 'error');
+                    return;
+                }
+                const variantsMsg = `${data.variantsProcessed || 0} variants processed`;
+                const errors = (data.metafieldErrors?.length || 0) + (data.policyErrors?.length || 0);
+                showStatusMessage(`✓ ${variantsMsg}${errors ? `, ${errors} errors` : ''}`, 'success');
+                loadPreorderProducts();
+            } catch (error) {
+                showStatusMessage(`Error clearing preorder data: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteVariantPreorder(encodedId) {
+            const variantId = decodeURIComponent(encodedId || '');
+            if (!variantId) return;
+            if (!confirm('Remove preorder data for this variant?')) return;
+            showStatusMessage('Deleting preorder data…', '');
+
+            try {
+                const res = await fetch('/api/variant-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ variantId }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) {
+                    const errText = data?.result?.errors || data?.error || res.statusText || 'Request failed';
+                    showStatusMessage(`Failed to delete: ${JSON.stringify(errText)}`, 'error');
+                    return;
+                }
+                variantCache = variantCache.filter(v => v.variantId !== variantId);
+                applyCurrentSearch();
+                showStatusMessage('✓ Variant preorder data deleted successfully', 'success');
+            } catch (error) {
+                showStatusMessage(`Error deleting variant: ${error.message}`, 'error');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        function initDashboard() {
+            const form = document.getElementById('variantForm');
+            const closeBtn = document.getElementById('variantModalClose');
+            const cancelBtn = document.getElementById('variantModalCancel');
+            const deleteBtn = document.getElementById('variantModalDelete');
+            const modal = document.getElementById('variantModal');
+
+            if (form) form.addEventListener('submit', submitVariantEdit);
+            if (closeBtn) closeBtn.addEventListener('click', closeVariantModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeVariantModal);
+            if (deleteBtn) deleteBtn.addEventListener('click', handleVariantDelete);
+            if (modal) {
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        closeVariantModal();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    const m = document.getElementById('variantModal');
+                    if (m && m.classList.contains('open')) {
+                        closeVariantModal();
+                    }
+                }
+            });
+
+            // Initialize brand menu
+            brandMenuToggle = document.getElementById('brandMenuToggle');
+            brandMenu = document.getElementById('brandMenu');
+
+            if (brandMenuToggle && brandMenu) {
+                brandMenuToggle.addEventListener('click', handleBrandMenuToggle);
+
+                // Close menu when clicking outside
+                document.addEventListener('click', (event) => {
+                    if (!brandMenuToggle.contains(event.target) && !brandMenu.contains(event.target)) {
+                        toggleBrandMenu(false);
+                    }
+                });
+
+                // Close menu on escape
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && brandMenu.classList.contains('open')) {
+                        toggleBrandMenu(false);
+                    }
+                });
+            }
+
+            loadPreorderProducts();
+        }
+
+        window.addEventListener('DOMContentLoaded', initDashboard);
     </script>
     
     
 </head>
 <body>
-        <div class="header">
+    <!-- Header -->
+    <header class="header">
             <div class="header-inner">
                 <div class="brand">
-                    <div class="logo"></div>
-                    <div>
-                        <h1>Shopify Preorder Dashboard</h1>
-                        <div class="muted">Manage and review variants on preorder</div>
+                <div class="logo">RJS</div>
+                <h1>Preorder Management</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/upload.html" class="btn btn-secondary">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                    </svg>
+                    Upload CSV
+                </a>
+                <button class="btn btn-secondary" onclick="loadPreorderProducts()">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                    </svg>
+                    Refresh
+                    </button>
+                <div class="dropdown">
+                    <button class="btn btn-secondary btn-icon" id="settingsToggle" onclick="toggleDropdown()">
+                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="settingsMenu">
+                        <button class="dropdown-item danger" onclick="clearAllPreorderData()">Clear All Data</button>
+                        <button class="dropdown-item" onclick="handleLogout()">Logout</button>
                     </div>
                 </div>
-                <div class="actions">
-                    <a class="btn" href="/upload.html">Upload CSV</a>
-                    <button class="btn secondary" onclick="loadPreorderProducts()">Refresh</button>
                 </div>
             </div>
-        </div>
+    </header>
 
+    <!-- Main Container -->
         <div class="container">
+        <!-- Status Message -->
+        <div id="clearStatus" class="status-message" style="display: none;"></div>
+        
+        <!-- Products Table -->
             <div id="products"></div>
         </div>
 
-        <form onsubmit="submitForm(event)">
-            <label for="csvFile">CSV file</label>
-            <input id="csvFile" name="file" type="file" accept=".csv,text/csv" />
-            <button id="submitBtn" type="submit">Upload & Update</button>
-        </form>
-
-        <div class="result">
-            <h3>Response</h3>
-            <pre id="result">No upload yet.</pre>
+    <!-- Edit Variant Modal -->
+        <div id="variantModal" class="modal-backdrop" aria-hidden="true">
+            <div class="modal" role="dialog" aria-labelledby="variantModalTitle">
+            <div class="modal-header">
+                    <div>
+                    <h2 id="variantModalTitle">Edit Variant</h2>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;" id="variantModalSubtitle"></p>
+                    </div>
+                    <button type="button" class="modal-close" id="variantModalClose" aria-label="Close">&times;</button>
+            </div>
+            
+                <form id="variantForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                        <input type="checkbox" id="variantIsPreorder" />
+                            <label for="variantIsPreorder" style="margin: 0; cursor: pointer;">Enable preorder for this variant</label>
+                    </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="variantLimit">Preorder Limit</label>
+                        <input type="number" class="input" id="variantLimit" min="0" step="1" placeholder="Enter preorder limit (0 to stop selling)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="variantMessage">Preorder Message</label>
+                        <textarea class="input" id="variantMessage" placeholder="Custom message shown on product page during preorder"></textarea>
+                    </div>
+                    
+                    <div id="variantModalMessage" class="message"></div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="variantModalDelete">Delete Data</button>
+                    <div class="modal-actions">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);" id="variantModalSku"></span>
+                        <button type="button" class="btn btn-secondary" id="variantModalCancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="variantModalSubmit">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <h3>CSV Example</h3>
-        <pre>handle,sku,preorder_limit,preorder_message
-my-product-handle,SKU-001,25,Preorder ships in 2 weeks
-my-product-handle,SKU-002,,
-another-handle,SKU-ABC,10,Limited preorder
-</pre>
-    </div>
+    
+    <script>
+        function toggleDropdown() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('open');
+        }
+        
+        document.addEventListener('click', (e) => {
+            const dropdown = document.querySelector('.dropdown');
+            const menu = document.getElementById('settingsMenu');
+            if (dropdown && !dropdown.contains(e.target)) {
+                menu?.classList.remove('open');
+            }
+        });
+    </script>
 </body>
 </html>
 
